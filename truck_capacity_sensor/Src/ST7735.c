@@ -652,7 +652,7 @@ static void _scrollup() {
 	int r,c;
 	_screen.c.row = 0;
 	_screen.c.col = 0;
-	for(r=1;r<_screen.nrow;r++)
+	for(r=1;r<_screen.nrow;r++) {
 		for(c=0;c<_screen.ncol;c++) {
 			_putch(*_scr(r,c));
 			_screen.c.col++;
@@ -667,6 +667,7 @@ static void _scrollup() {
 		}
 		_screen.c.row = _screen.nrow - 1;
 		_screen.c.col = 0;
+	}
 }
 
 static void cursor_expose(int flg) {

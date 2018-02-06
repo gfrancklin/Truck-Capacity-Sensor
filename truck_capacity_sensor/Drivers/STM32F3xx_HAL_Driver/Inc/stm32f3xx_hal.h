@@ -45,6 +45,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal_conf.h"
 
+
 /** @addtogroup STM32F3xx_HAL_Driver
   * @{
   */
