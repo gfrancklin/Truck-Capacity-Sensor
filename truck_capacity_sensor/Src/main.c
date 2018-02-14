@@ -62,7 +62,24 @@ void SystemClock_Config(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+void led_animation(void) {
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD3_Pin);
+	HAL_Delay(50);
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD5_Pin);
+	HAL_Delay(50);
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD7_Pin);
+	HAL_Delay(50);
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD9_Pin);
+	HAL_Delay(50);
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD10_Pin);
+	HAL_Delay(50);
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD8_Pin);
+	HAL_Delay(50);
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD6_Pin);
+	HAL_Delay(50);
+	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+	HAL_Delay(50);
+}
 /* USER CODE END 0 */
 
 int main(void)
@@ -91,10 +108,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI3_Init();
-  MX_I2C2_Init();
+  MX_I2C1_Init();
+  i2cxl_maxsonar_init();
 
   /* USER CODE BEGIN 2 */
-
+  int range_cm = 0;
+  volatile int32_t ret_val = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,7 +123,10 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
+	  //while(i2cxl_maxsonar_read_status(SENSOR_STATUS_Port, SENSOR_STATUS_Pin) != 1) {
+		 ret_val = i2cxl_maxsonar_start(112, &range_cm);
+	  //}
+		 led_animation();
   }
   /* USER CODE END 3 */
 

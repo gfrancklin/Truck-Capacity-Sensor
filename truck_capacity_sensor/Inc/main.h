@@ -66,6 +66,8 @@
 #define B1_GPIO_Port GPIOA
 #define DOOR_SENSOR_Pin GPIO_PIN_1
 #define DOOR_SENSOR_GPIO_Port GPIOA
+#define SENSOR_STATUS_Pin GPIO_PIN_2
+#define SENSOR_STATUS_Port GPIOA
 #define SPI1_SCK_Pin GPIO_PIN_5
 #define SPI1_SCK_GPIO_Port GPIOA
 #define SPI1_MISO_Pin GPIO_PIN_6
