@@ -1,0 +1,21 @@
+18:00:43 **** Incremental Build of configuration Debug for project usb_discovery_test ****
+Info: Internal Builder is used for build
+arm-atollic-eabi-gcc -c -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -D__weak=__attribute__((weak)) -D__packed=__attribute__((__packed__)) -DUSE_HAL_DRIVER -DSTM32F303xC -I../../../Inc -I../../../Drivers/STM32F3xx_HAL_Driver/Inc -I../../../Drivers/STM32F3xx_HAL_Driver/Inc/Legacy -I../../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../../../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I../../../Drivers/CMSIS/Device/ST/STM32F3xx/Include -I../../../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -g -fstack-usage -Wall -specs=nano.specs -o Application\User\main.o ..\..\..\Src\main.c 
+..\..\..\Src\main.c: In function 'main':
+..\..\..\Src\main.c:119:4: warning: implicit declaration of function 'CDC_Transmit_FS' [-Wimplicit-function-declaration]
+    CDC_Transmit_FS(&Buf, 1);
+    ^~~~~~~~~~~~~~~
+arm-atollic-eabi-gcc -o usb_discovery_test.elf Application\TrueSTUDIO\startup_stm32f303xc.o Application\User\main.o Application\User\stm32f3xx_hal_msp.o Application\User\stm32f3xx_it.o Application\User\usb_device.o Application\User\usbd_cdc_if.o Application\User\usbd_conf.o Application\User\usbd_desc.o Drivers\CMSIS\system_stm32f3xx.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_cortex.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_dma.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_flash.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_flash_ex.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_gpio.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_i2c.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_i2c_ex.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_pcd.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_pcd_ex.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_pwr.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_pwr_ex.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_rcc.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_rcc_ex.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_tim.o Drivers\STM32F3xx_HAL_Driver\stm32f3xx_hal_tim_ex.o Middlewares\USB_Device_Library\usbd_cdc.o Middlewares\USB_Device_Library\usbd_core.o Middlewares\USB_Device_Library\usbd_ctlreq.o Middlewares\USB_Device_Library\usbd_ioreq.o -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T../STM32F303VC_FLASH.ld -specs=nosys.specs -static -Wl,-Map=usb_discovery_test.map -Wl,--gc-sections -Wl,--defsym=malloc_getpagesize_P=0x80 -Wl,--start-group -lc -lm -Wl,--end-group -specs=nano.specs 
+C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.0.0\ide\jre\bin\java -jar C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.0.0\Tools\arm-atollic-reports.jar sizeinfo list usb_discovery_test.elf 
+Generate build reports...
+Print size information
+   text	   data	    bss	    dec	    hex	filename
+  11212	    352	   6112	  17676	   450c	usb_discovery_test.elf
+Print size information done
+Generate listing file
+Output sent to: usb_discovery_test.list
+Generate listing file done
+Generate build reports done
+
+18:00:46 Build Finished (took 2s.785ms)
+

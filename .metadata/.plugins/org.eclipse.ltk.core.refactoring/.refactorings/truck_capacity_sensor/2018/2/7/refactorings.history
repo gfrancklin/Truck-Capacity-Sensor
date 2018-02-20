@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;truck_capacity_sensor/Inc/debug_log&apos; to &apos;debug_log.h&apos;" description="Rename resource &apos;debug_log&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Inc/debug_log" name="debug_log.h" stamp="1518793108313" updateReferences="true"/>
+</session>

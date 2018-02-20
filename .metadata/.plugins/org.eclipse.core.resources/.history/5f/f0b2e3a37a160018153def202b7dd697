@@ -1,0 +1,13 @@
+/*!
+ * debug.c
+ *
+ *  Created on: Feb 20, 2018
+ *      Author: Gabriel
+ */
+
+void print_measurement(int measurement) {
+	char ESC = 27;	//ESC character
+	char Buf[256] = "I'm Alive\r\n!";
+	CDC_Transmit_FS((uint8_t *)Buf, 13);
+}
+

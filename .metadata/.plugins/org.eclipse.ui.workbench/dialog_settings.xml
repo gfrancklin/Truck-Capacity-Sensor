@@ -12,6 +12,24 @@
 		<list key="textArray">
 		</list>
 	</section>
-	<section name="NewWizardAction">
+	<section name="ImportExportAction">
+		<item value="org.eclipse.ui.wizards.import.FileSystem" key="ImportExportPage.STORE_SELECTED_IMPORT_WIZARD_ID"/>
+		<list key="ImportExportPage.STORE_EXPANDED_IMPORT_CATEGORIES">
+			<item value="org.eclipse.ui.Basic"/>
+		</list>
+	</section>
+	<section name="FileSystemImportWizard">
+		<item value="true" key="WizardFileSystemResourceImportPage1.STORE_CREATE_CONTAINER_STRUCTURE_ID"/>
+		<item value="PROJECT_LOC" key="WizardFileSystemResourceImportPage1.STORE_PATH_VARIABLE_NAME_ID"/>
+		<item value="false" key="WizardFileSystemResourceImportPage1.STORE_OVERWRITE_EXISTING_RESOURCES_ID"/>
+		<item value="true" key="WizardFileSystemResourceImportPage1.STORE_CREATE_VIRTUAL_FOLDERS_ID"/>
+		<item value="true" key="WizardFileSystemResourceImportPage1.STORE_CREATE_LINKS_IN_WORKSPACE_ID"/>
+		<item value="true" key="WizardFileSystemResourceImportPage1.STORE_PATH_VARIABLE_SELECTED_ID"/>
+		<list key="WizardFileSystemResourceImportPage1.STORE_SOURCE_NAMES_ID">
+			<item value="C:\Users\Gabriel\Documents\GitHub\Truck-Capacity-Sensor\truck_capacity_sensor\Middlewares\ST\STM32_USB_Device_Library"/>
+			<item value="C:\Users\Gabriel\Documents\GitHub\Truck-Capacity-Sensor\truck_capacity_sensor\Drivers\STM32F3xx_HAL_Driver"/>
+			<item value="C:\Users\Gabriel\Documents\Embedded Systems Development\4 Semester\Capstone Project\usb_discovery_test\Drivers"/>
+			<item value="C:\Users\Gabriel\Documents\Embedded Systems Development\4 Semester\Capstone Project\usb_discovery_test\Middlewares\ST\STM32_USB_Device_Library"/>
+		</list>
 	</section>
 </section>

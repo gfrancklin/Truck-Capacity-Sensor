@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Rename resource &apos;truck_capacity_sensor/Src/max_i2cxl&apos; to &apos;max_i2cxl.c&apos;" description="Rename resource &apos;max_i2cxl&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Src/max_i2cxl" name="max_i2cxl.c" stamp="1517581571918" updateReferences="true"/>
-</session>

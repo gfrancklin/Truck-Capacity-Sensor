@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+		<item value="C:\Users\Gabriel\Documents\Embedded Systems Development\4 Semester\Capstone Project"/>
+		<item value="C:\Users\Gabriel\Documents\Embedded Systems Development\4 Semester\Capstone Project\usb_discovery_test"/>
+		<item value="C:\STM32L4_DK_IoT_Node_Seminar\Hands-on\Lab2\USB_CDC"/>
+		<item value="C:\Users\Gabriel\Documents\Embedded Systems Development\2 Semester\LAB 5 - Linux\stm32f3 - Raw"/>
 		<item value="C:\Users\Gabriel\Documents\GitHub\Truck-Capacity-Sensor\truck_capacity_sensor"/>
 	</list>
 </section>
