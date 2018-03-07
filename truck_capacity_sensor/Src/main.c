@@ -1,48 +1,7 @@
-/**
+/*!
   ******************************************************************************
   * @file           : main.c
   * @brief          : Main program body
-  ******************************************************************************
-  * This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
-  *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
-  * All rights reserved.
-  *
-  * Redistribution and use in source and binary forms, with or without 
-  * modification, are permitted, provided that the following conditions are met:
-  *
-  * 1. Redistribution of source code must retain the above copyright notice, 
-  *    this list of conditions and the following disclaimer.
-  * 2. Redistributions in binary form must reproduce the above copyright notice,
-  *    this list of conditions and the following disclaimer in the documentation
-  *    and/or other materials provided with the distribution.
-  * 3. Neither the name of STMicroelectronics nor the names of other 
-  *    contributors to this software may be used to endorse or promote products 
-  *    derived from this software without specific written permission.
-  * 4. This software, including modifications and/or derivative works of this 
-  *    software, must execute solely and exclusively on microcontroller or
-  *    microprocessor devices manufactured by or for STMicroelectronics.
-  * 5. Redistribution and use of this software other than as permitted under 
-  *    this license is void and will automatically terminate your rights under 
-  *    this license. 
-  *
-  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
-  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
-  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-  * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
-  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
-  * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
-  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
-  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
-  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
   ******************************************************************************
   */
 /* Includes ------------------------------------------------------------------*/
@@ -50,151 +9,119 @@
 #include "stm32f3xx_hal.h"
 #include "i2c.h"
 #include "spi.h"
-#include "usb_device.h"
 #include "gpio.h"
+#include "max_i2cxl.h"
+#ifdef USE_USB_DEBUG
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
+#endif
 
-/* USER CODE BEGIN Includes */
-#define TRIGGER_TIME_MS 100	//5s
-#define MAX_BUF_SIZE	256
-//#include "usbd_cdc_if.h"
-/* USER CODE END Includes */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-uint8_t RxData[256];
-uint32_t data_received = 0;
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
+/* Function Prototypes --------------------------------------------------------*/
 void SystemClock_Config(void);
+void print_menu(void);
 
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
+#ifdef USE_USB_DEBUG
+uint8_t rx_data_buf[MAX_BUF_SIZE];
+uint32_t data_len = 0;
+#endif
 
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
-void led_animation(void) {
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD3_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD5_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD7_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD9_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD10_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD8_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD6_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-	HAL_Delay(50);
-}
-
-void led_animation_ccw(void) {
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD6_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD8_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD10_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD9_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD7_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD5_Pin);
-	HAL_Delay(50);
-	HAL_GPIO_TogglePin(LD4_GPIO_Port, LD3_Pin);
-	HAL_Delay(50);
-}
-/* USER CODE END 0 */
+/* GAB: This variable holds the current address of the one sensor currently supported.
+ * In the next versions of the software, the typedef max_i2cxl will contain a last
+ * measurement value, that will replace this variable. */
+volatile int range_cm = 0;
 
 /**
   * @brief  The application entry point.
   *
   * @retval None
   */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
-	int range_cm = 0;
+int main(void) {
 	volatile uint32_t ret_val = 1;
+	uint32_t last_trigger_time = HAL_GetTick();
+
+#ifdef USE_USB_DEBUG
 	char error_message[MAX_BUF_SIZE];
 	memset(error_message, 0, MAX_BUF_SIZE);
+#endif
 
 	HAL_Init();
 	SystemClock_Config();
 	MX_GPIO_Init();
+	MX_SPI3_Init();
+	MX_I2C1_Init();
+
+#ifdef USE_USB_DEBUG
 	MX_USB_DEVICE_Init();
+
+	print_stamp();
 	print_debug_message("I: Initializing System...\r\n");
-//	char message[256] = "I:Initializing System...\r\n";
-//	int length = strlen(message);
-//	ret_val = CDC_Transmit_FS((uint8_t *)message, length);
+	print_debug_message("I: Initializing Sensor...\r\n");
+#endif
+	if((ret_val = i2cxl_maxsonar_init()) != 0) {
+#ifdef USE_USB_DEBUG
+		sprintf(error_message, "E: Error %d initializing sensor...\r\n", (int)ret_val);
+		print_debug_message(error_message);
+#endif
+	}
+#ifdef USE_USB_DEBUG
+	print_debug_message("Initialization successful...\r\n");
+	print_menu();
+#endif
 
-  /* USER CODE END 1 */
+	/* Initialize FT800 Display */
+	set_display_parameters();
+	wake_up_display();
+	initial_display_screen();
 
-  /* MCU Configuration----------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-
-
-  /* USER CODE BEGIN Init */
-  print_debug_message("I: Initializing Sensor...\r\n");
-  if((ret_val = i2cxl_maxsonar_init()) != 0) {
-	  sprintf(error_message, "E: Error %d initializing sensor...\r\n", ret_val);
-	  print_debug_message(error_message);
-  }
-  print_debug_message("Initialization successful...\r\n");
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-
-  MX_SPI3_Init();
-  MX_I2C1_Init();
-
-  /* USER CODE BEGIN 2 */
-  uint32_t last_trigger_time = HAL_GetTick();
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-  /* USER CODE END WHILE */
-
-  /* USER CODE BEGIN 3 */
-	 while((ret_val != 0) || ((HAL_GetTick() - last_trigger_time) > TRIGGER_TIME_MS) ) {
-		 last_trigger_time = HAL_GetTick();
-		 ret_val = i2cxl_maxsonar_start(112, &range_cm);
-		 print_measurement(range_cm);
-	 }
-	 led_animation();
-  }
-  /* USER CODE END 3 */
-
+	while (1) {
+#ifdef USE_USB_DEBUG
+		if(data_len > 0) {
+			CDC_Transmit_FS(rx_data_buf, data_len);
+			switch (rx_data_buf[0]) {
+		  		case '1' : {
+		  			while(((ret_val != 0) || ((HAL_GetTick() - last_trigger_time) > TRIGGER_TIME_MS)) &&
+								  rx_data_buf[data_len-1] != 'q') {
+						 last_trigger_time = HAL_GetTick();
+						 ret_val = i2cxl_maxsonar_start(112, &range_cm);
+						 print_measurement(range_cm);
+					  }
+					  break;
+				  }
+				  case '2' : {
+					  int old_addr = 112;
+					  int new_addr = 10;
+					  while(ret_val != 0) {
+						  ret_val = i2cxl_maxsonar_change_addr(old_addr, &new_addr);
+					  }
+					  char buffer[255];
+					  sprintf(buffer, "Address Changed to %d\r\n", new_addr);
+					  print_debug_message(buffer);
+					  break;
+				  }
+				  default : {
+					  print_debug_message("\r\nNo Such Option\r\n");
+					  break;
+				  }
+			  }
+			  print_menu();
+			  data_len = 0;
+		}
+#endif
+#ifndef USE_USB_DEBUG
+	while((ret_val != 0) || ((HAL_GetTick() - last_trigger_time) > TRIGGER_TIME_MS)) {
+		last_trigger_time = HAL_GetTick();
+		ret_val = i2cxl_maxsonar_start(112, &range_cm);
+		draw_screen();
+	}
+#endif
+	}
 }
 
 /**
   * @brief System Clock Configuration
   * @retval None
   */
-void SystemClock_Config(void)
-{
-
+void SystemClock_Config(void) {
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
@@ -248,9 +175,14 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
+void print_menu(void) {
+#ifdef USE_USB_DEBUG
+	print_debug_message("\n\n\r--------- Main Menu -----------\r\n");
+	print_debug_message("-------------------------------\r\n");
+	print_debug_message("1. Measure distance\r\n");
+	print_debug_message("2. Change Sensor Address\r\n");
+#endif
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

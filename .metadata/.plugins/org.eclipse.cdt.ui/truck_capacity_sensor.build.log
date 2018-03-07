@@ -1,45 +1,36 @@
-18:24:25 **** Incremental Build of configuration Debug for project truck_capacity_sensor ****
+18:21:22 **** Incremental Build of configuration Debug for project truck_capacity_sensor ****
 Info: Internal Builder is used for build
-arm-atollic-eabi-gcc -c -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -D__weak=__attribute__((weak)) -D__packed=__attribute__((__packed__)) -DUSE_HAL_DRIVER -DSTM32F303xC -I../Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F3xx/Include -I../Drivers/CMSIS/Include -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -O0 -ffunction-sections -fdata-sections -g3 -fstack-usage -Wall -specs=nano.specs -o Src\debug.o ..\Src\debug.c 
-..\Src\debug.c: In function 'print_measurement':
-..\Src\debug.c:18:2: warning: implicit declaration of function 'memset' [-Wimplicit-function-declaration]
-  memset(Buf, 0, CLR_SCR_BUF_SIZE);
-  ^~~~~~
-..\Src\debug.c:18:2: warning: incompatible implicit declaration of built-in function 'memset'
-..\Src\debug.c:18:2: note: include '<string.h>' or provide a declaration of 'memset'
-..\Src\debug.c:22:2: warning: implicit declaration of function 'sprintf' [-Wimplicit-function-declaration]
-  sprintf(clr_screen_buf, "%c[2K\r", ESC);
-  ^~~~~~~
-..\Src\debug.c:22:2: warning: incompatible implicit declaration of built-in function 'sprintf'
-..\Src\debug.c:22:2: note: include '<stdio.h>' or provide a declaration of 'sprintf'
-..\Src\debug.c:25:19: warning: implicit declaration of function 'CDC_Transmit_FS' [-Wimplicit-function-declaration]
-  while((ret_val = CDC_Transmit_FS((uint8_t *)clr_screen_buf, strlen(clr_screen_buf))) != 0) {
-                   ^~~~~~~~~~~~~~~
-..\Src\debug.c:25:62: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
-  while((ret_val = CDC_Transmit_FS((uint8_t *)clr_screen_buf, strlen(clr_screen_buf))) != 0) {
-                                                              ^~~~~~
-..\Src\debug.c:25:62: warning: incompatible implicit declaration of built-in function 'strlen'
-..\Src\debug.c:25:62: note: include '<string.h>' or provide a declaration of 'strlen'
-..\Src\debug.c:28:51: warning: incompatible implicit declaration of built-in function 'strlen'
-  while((ret_val = CDC_Transmit_FS((uint8_t *)Buf, strlen(Buf))) != 0) {}
-                                                   ^~~~~~
-..\Src\debug.c:28:51: note: include '<string.h>' or provide a declaration of 'strlen'
-..\Src\debug.c: In function 'print_debug_message':
-..\Src\debug.c:33:55: warning: incompatible implicit declaration of built-in function 'strlen'
-  while((ret_val = CDC_Transmit_FS((uint8_t *)message, strlen(message))) != 0);
-                                                       ^~~~~~
-..\Src\debug.c:33:55: note: include '<string.h>' or provide a declaration of 'strlen'
-arm-atollic-eabi-gcc -o truck_capacity_sensor.elf Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_cortex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_dma.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_flash.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_flash_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_gpio.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_i2c.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_i2c_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pcd.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pcd_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pwr.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pwr_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_rcc.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_rcc_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_spi.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_spi_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_tim.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_tim_ex.o Middlewares\STM32_USB_Device_Library\Class\CDC\Src\usbd_cdc.o Middlewares\STM32_USB_Device_Library\Core\Src\usbd_core.o Middlewares\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.o Middlewares\STM32_USB_Device_Library\Core\Src\usbd_ioreq.o Src\debug.o Src\gpio.o Src\i2c.o Src\main.o Src\max_i2cxl.o Src\spi.o Src\stm32f3xx_hal_msp.o Src\stm32f3xx_it.o Src\system_stm32f3xx.o Src\usb_device.o Src\usbd_cdc_if.o Src\usbd_conf.o Src\usbd_desc.o startup\startup_stm32f303xc.o -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T../STM32F303VC_FLASH.ld -specs=nosys.specs -static -Wl,-Map=truck_capacity_sensor.map -Wl,--gc-sections -Wl,--defsym=malloc_getpagesize_P=0x80 -Wl,--start-group -lc -lm -Wl,--end-group -specs=nano.specs 
+arm-atollic-eabi-gcc -c -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -D__weak=__attribute__((weak)) -D__packed=__attribute__((__packed__)) -DUSE_HAL_DRIVER -DSTM32F303xC -I../Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc -I../Drivers/STM32F3xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F3xx/Include -I../Drivers/CMSIS/Include -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -O0 -ffunction-sections -fdata-sections -g3 -fstack-usage -Wall -specs=nano.specs -o Src\main.o ..\Src\main.c 
+..\Src\main.c: In function 'main':
+..\Src\main.c:56:2: warning: implicit declaration of function 'print_stamp' [-Wimplicit-function-declaration]
+  print_stamp();
+  ^~~~~~~~~~~
+..\Src\main.c:57:2: warning: implicit declaration of function 'print_debug_message' [-Wimplicit-function-declaration]
+  print_debug_message("I: Initializing System...\r\n");
+  ^~~~~~~~~~~~~~~~~~~
+..\Src\main.c:72:2: warning: implicit declaration of function 'set_display_parameters' [-Wimplicit-function-declaration]
+  set_display_parameters();
+  ^~~~~~~~~~~~~~~~~~~~~~
+..\Src\main.c:73:2: warning: implicit declaration of function 'wake_up_display' [-Wimplicit-function-declaration]
+  wake_up_display();
+  ^~~~~~~~~~~~~~~
+..\Src\main.c:74:2: warning: implicit declaration of function 'initial_display_screen' [-Wimplicit-function-declaration]
+  initial_display_screen();
+  ^~~~~~~~~~~~~~~~~~~~~~
+..\Src\main.c:86:8: warning: implicit declaration of function 'print_measurement' [-Wimplicit-function-declaration]
+        print_measurement(range_cm);
+        ^~~~~~~~~~~~~~~~~
+arm-atollic-eabi-gcc -o truck_capacity_sensor.elf Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_cortex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_dma.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_flash.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_flash_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_gpio.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_i2c.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_i2c_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pcd.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pcd_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pwr.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_pwr_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_rcc.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_rcc_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_spi.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_spi_ex.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_tim.o Drivers\STM32F3xx_HAL_Driver\Src\stm32f3xx_hal_tim_ex.o Middlewares\STM32_USB_Device_Library\Class\CDC\Src\usbd_cdc.o Middlewares\STM32_USB_Device_Library\Core\Src\usbd_core.o Middlewares\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.o Middlewares\STM32_USB_Device_Library\Core\Src\usbd_ioreq.o Src\debug.o Src\ft800.o Src\gpio.o Src\i2c.o Src\main.o Src\max_i2cxl.o Src\spi.o Src\stm32f3xx_hal_msp.o Src\stm32f3xx_it.o Src\system_stm32f3xx.o Src\usb_device.o Src\usbd_cdc_if.o Src\usbd_conf.o Src\usbd_desc.o startup\startup_stm32f303xc.o -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T../STM32F303VC_FLASH.ld -specs=nosys.specs -static -Wl,-Map=truck_capacity_sensor.map -Wl,--gc-sections -Wl,--defsym=malloc_getpagesize_P=0x80 -Wl,--start-group -lc -lm -Wl,--end-group -specs=nano.specs 
 C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.0.0\ide\jre\bin\java -jar C:\Program Files (x86)\Atollic\TrueSTUDIO for STM32 9.0.0\Tools\arm-atollic-reports.jar sizeinfo list truck_capacity_sensor.elf 
 Generate build reports...
 Print size information
    text	   data	    bss	    dec	    hex	filename
-  30556	    452	   6380	  37388	   920c	truck_capacity_sensor.elf
+  37680	    456	   6728	  44864	   af40	truck_capacity_sensor.elf
 Print size information done
 Generate listing file
 Output sent to: truck_capacity_sensor.list
 Generate listing file done
 Generate build reports done
 
-18:24:29 Build Finished (took 3s.452ms)
+18:21:26 Build Finished (took 3s.813ms)
 

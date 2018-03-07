@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;truck_capacity_sensor/Src/ft800_interface.c&apos; to &apos;ft800.c&apos;" description="Rename resource &apos;ft800_interface.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Src/ft800_interface.c" name="ft800.c" stamp="1520455683209" updateReferences="true"/>
+</session>

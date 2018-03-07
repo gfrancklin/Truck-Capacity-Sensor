@@ -12,28 +12,21 @@
 #include "stdint.h"
 #include "stdio.h"
 #include "stm32f3xx_hal.h"
-
-/* Defines *******************************************************/
-#define	CLEAR_BIT_0			0xFE
-#define	SET_BIT_0			0x01
-#define RX_BUFFER_SIZE		2
-#define	MAX_ATTEMPTS		3
-#define READ_RANGE_CMD		0x51
-#define ADDR_UNLOCK_1_CMD	0xAA
-#define ADDR_UNLOCK_2_CMD	0xA5
-#define TX_BUFFER_SIZE		1
-#define TIMEOUT_MS			1000
-#define MAX_ADDR_VALUE		0xFF
+#include "max_i2cxl.h"
 
 /* Global Variables *********************************************/
 I2C_HandleTypeDef hi2c2;
-extern I2C_HandleTypeDef hi2c1;
+max_i2cxl_t sensor[NUMBER_OF_SENSORS] = {
+		{10, 0, SENSOR_1_Pin, SENSOR_1_Port, 0},
+		{20, 0, SENSOR_2_Pin, SENSOR_2_Port, 0},
+		{30, 0, SENSOR_3_Pin, SENSOR_3_Port, 0},
+		{40, 0, SENSOR_4_Pin, SENSOR_4_Port, 0}
+};
+
 
 /* Function Prototypes ******************************************/
-int i2cxl_maxsonar_init(void);
 static uint32_t i2cxl_maxsonar_measure(int);
-static uint32_t i2cxl_maxsonar_read(int, int *);
-int32_t i2cxl_maxsonar_change_addr(int, int *);
+static uint32_t i2cxl_maxsonar_read(volatile int, volatile int *);
 
 /*!
  * \author Gabriel Yano
@@ -93,7 +86,7 @@ int i2cxl_maxsonar_init(void) {
  * 		 In addition, it sets the MSB if error during the measurement or
  * 		 clear it if error during the read.
  */
-uint32_t i2cxl_maxsonar_start(int addr, int * range_cm) {
+uint32_t i2cxl_maxsonar_start(volatile int addr, volatile int * range_cm) {
 	uint32_t ret_val = 0;
 
 	/* If some error occur it will set or clear the MSB to flag weather error
@@ -102,6 +95,32 @@ uint32_t i2cxl_maxsonar_start(int addr, int * range_cm) {
 		ret_val |= 0x80000000;
 	} else if((ret_val = i2cxl_maxsonar_read(addr, range_cm)) != 0) {
 		ret_val &= 0x7FFFFFFF;
+	}
+	return ret_val;
+}
+
+/*!
+ * \author Gabriel Yano
+ * \name i2cxl_maxsonar_start
+ * \brief Triggers a measurement and reads back the range
+ * \param addr - Address of the sensor in the I2C network
+ * \param range_cm - pointer to where to store the value read
+ * \retval 0 for success
+ * \retval error code if error
+ * \note The error codes follow the functions measure and read return values.
+ * 		 In addition, it sets the MSB if error during the measurement or
+ * 		 clear it if error during the read.
+ */
+uint32_t i2cxl_maxsonar_start_all(max_i2cxl_t * sensor, uint8_t length) {
+	uint32_t ret_val = 0;
+	uint8_t cnt = 0;
+
+	for(cnt = 0; cnt < length; cnt++) {
+		if((ret_val = i2cxl_maxsonar_measure(sensor->addr)) != 0) {
+			ret_val |= 0x80000000;
+		} else if((ret_val = i2cxl_maxsonar_read(sensor->addr, &(sensor->last_measurement))) != 0) {
+			ret_val &= 0x7FFFFFFF;
+		}
 	}
 	return ret_val;
 }
@@ -153,7 +172,7 @@ uint8_t i2cxl_maxsonar_read_status(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin) {
  * \retval -2 if couldn't transmit to the device
  * \note
  */
-static uint32_t i2cxl_maxsonar_read(int addr, int * range_cm) {
+static uint32_t i2cxl_maxsonar_read(volatile int addr, volatile int * range_cm) {
 	uint32_t ret_val = 0;
 	int32_t rx_ret_val = 1;
 	uint8_t rx_buffer[RX_BUFFER_SIZE] = {0};
