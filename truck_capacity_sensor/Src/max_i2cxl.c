@@ -17,16 +17,16 @@
 /* Global Variables *********************************************/
 I2C_HandleTypeDef hi2c2;
 max_i2cxl_t sensor[NUMBER_OF_SENSORS] = {
-		{10, 0, SENSOR_1_Pin, SENSOR_1_Port, 0},
-		{20, 0, SENSOR_2_Pin, SENSOR_2_Port, 0},
-		{30, 0, SENSOR_3_Pin, SENSOR_3_Port, 0},
-		{40, 0, SENSOR_4_Pin, SENSOR_4_Port, 0}
+		{10, 0, SENSOR_1_Pin, SENSOR_1_Port, 0, 0},
+		{20, 0, SENSOR_2_Pin, SENSOR_2_Port, 0, 0},
+		{30, 0, SENSOR_3_Pin, SENSOR_3_Port, 0, 0},
+		{50, 0, SENSOR_4_Pin, SENSOR_4_Port, 0, 0}
 };
-
 
 /* Function Prototypes ******************************************/
 static uint32_t i2cxl_maxsonar_measure(int);
 static uint32_t i2cxl_maxsonar_read(volatile int, volatile int *);
+static void stm32_i2c_release_bus(void);
 
 /*!
  * \author Gabriel Yano
@@ -111,18 +111,21 @@ uint32_t i2cxl_maxsonar_start(volatile int addr, volatile int * range_cm) {
  * 		 In addition, it sets the MSB if error during the measurement or
  * 		 clear it if error during the read.
  */
-uint32_t i2cxl_maxsonar_start_all(max_i2cxl_t * sensor, uint8_t length) {
-	uint32_t ret_val = 0;
-	uint8_t cnt = 0;
-
-	for(cnt = 0; cnt < length; cnt++) {
-		if((ret_val = i2cxl_maxsonar_measure(sensor->addr)) != 0) {
-			ret_val |= 0x80000000;
-		} else if((ret_val = i2cxl_maxsonar_read(sensor->addr, &(sensor->last_measurement))) != 0) {
-			ret_val &= 0x7FFFFFFF;
+void i2cxl_maxsonar_start_all(max_i2cxl_t * sensor, uint8_t length) {
+	for(uint8_t cnt = 0; cnt < length; cnt++) {
+		sensor->error_code = 0;
+		if((sensor->error_code = i2cxl_maxsonar_measure(sensor->addr)) != 0) {
+			sensor->error_code |= 0x80000000;
+		} else if((sensor->error_code = i2cxl_maxsonar_read(sensor->addr, &(sensor->last_measurement))) != 0) {
+			sensor->error_code &= 0x7FFFFFFF;
 		}
+		if(sensor->error_code != 0) {
+			stm32_i2c_release_bus();
+		}
+		sensor++;
+		HAL_Delay(50);
 	}
-	return ret_val;
+	return;
 }
 
 /*!
@@ -151,14 +154,14 @@ static uint32_t i2cxl_maxsonar_measure(int addr) {
 			tx_ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)addr, &tx_cmd, sizeof(tx_cmd), TIMEOUT_MS);
 		}
 		if(retry_times == MAX_ATTEMPTS) {
-			ret_val = 2;
+			ret_val = (2 << 2) | tx_ret_val;
 		}
 	}
 	return ret_val;
 }
 
 uint8_t i2cxl_maxsonar_read_status(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin) {
-	return HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) ? 1 : 0;
+	return HAL_GPIO_ReadPin(GPIOx, GPIO_Pin);
 }
 
 /*!
@@ -191,7 +194,7 @@ static uint32_t i2cxl_maxsonar_read(volatile int addr, volatile int * range_cm) 
 			rx_ret_val = HAL_I2C_Master_Receive(&hi2c2, (uint16_t)addr, &rx_buffer[0], RX_BUFFER_SIZE, TIMEOUT_MS);
 		}
 		if(retry_times == MAX_ATTEMPTS) {
-			ret_val = 2;
+			ret_val = (2 << 2) | rx_ret_val;
 		} else {
 			*range_cm = (rx_buffer[0] << 8) | rx_buffer[1];
 		}
@@ -214,7 +217,7 @@ static uint32_t i2cxl_maxsonar_read(volatile int addr, volatile int * range_cm) 
 int32_t i2cxl_maxsonar_change_addr(int old_addr, int * new_addr) {
 	int32_t ret_val = 0;
 	uint32_t retry_times = 0;
-	uint8_t tx_cmd = ADDR_UNLOCK_1_CMD;
+	uint8_t tx_cmd[3];
 
 	if((old_addr > MAX_ADDR_VALUE) | (*new_addr > MAX_ADDR_VALUE)) {	//the address can't be higher than 255
 		ret_val = -1;
@@ -224,24 +227,42 @@ int32_t i2cxl_maxsonar_change_addr(int old_addr, int * new_addr) {
 		if((*new_addr % 2) == 1) {
 			*new_addr = *new_addr - 1;
 		}
+		old_addr <<= 1;
 		old_addr = old_addr & CLEAR_BIT_0;
 
-		while((ret_val != 0) | (retry_times < MAX_ATTEMPTS)) {
-			retry_times++;
-			ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)old_addr, &tx_cmd, sizeof(tx_cmd), TIMEOUT_MS);
-			if(ret_val == 0) {
-				tx_cmd = ADDR_UNLOCK_2_CMD;
-				ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)old_addr, &tx_cmd, sizeof(tx_cmd), TIMEOUT_MS);
-				if(ret_val == 0) {
-					ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)old_addr, (uint8_t *)new_addr, sizeof(new_addr), TIMEOUT_MS);
-				}
-			}
-		}
-		if(retry_times == MAX_ATTEMPTS) {
-			ret_val = -3;
-		} else {
-			ret_val = HAL_I2C_IsDeviceReady(&hi2c2, *(uint16_t *)new_addr, MAX_ATTEMPTS, TIMEOUT_MS);
-		}
+		tx_cmd[0] = ADDR_UNLOCK_1_CMD;
+		tx_cmd[1] = ADDR_UNLOCK_2_CMD;
+		tx_cmd[2] = ((*new_addr) << 1);
+//		do {
+			ret_val = HAL_I2C_IsDeviceReady(&hi2c2, (uint16_t)old_addr, MAX_ATTEMPTS, TIMEOUT_MS);
+			ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)old_addr, &tx_cmd[0], 3, TIMEOUT_MS);
+//		}
+//		while(ret_val != 0);
+//		while((ret_val != 0) | (retry_times < MAX_ATTEMPTS)) {
+//			retry_times++;
+//			ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)old_addr, &tx_cmd, sizeof(tx_cmd), TIMEOUT_MS);
+//			if(ret_val == 0) {
+//				tx_cmd = ADDR_UNLOCK_2_CMD;
+//				ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)old_addr, &tx_cmd, sizeof(tx_cmd), TIMEOUT_MS);
+//				if(ret_val == 0) {
+//					ret_val = HAL_I2C_Master_Transmit(&hi2c2, (uint16_t)old_addr, (uint8_t *)new_addr, sizeof(new_addr), TIMEOUT_MS);
+//				}
+//			}
+//		}
+//		if(retry_times == MAX_ATTEMPTS) {
+//			ret_val = -3;
+//		} else {
+//			ret_val = HAL_I2C_IsDeviceReady(&hi2c2, *(uint16_t *)new_addr, MAX_ATTEMPTS, TIMEOUT_MS);
+//		}
 	}
 	return ret_val;
+}
+
+static void stm32_i2c_release_bus(void) {
+	__HAL_I2C_DISABLE(&hi2c2);
+
+	HAL_Delay(10);
+
+	__HAL_I2C_ENABLE(&hi2c2);
+	return;
 }

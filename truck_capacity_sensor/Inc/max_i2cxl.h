@@ -17,7 +17,7 @@
 #define ADDR_UNLOCK_1_CMD	0xAA
 #define ADDR_UNLOCK_2_CMD	0xA5
 #define TX_BUFFER_SIZE		1
-#define TIMEOUT_MS			1000
+#define TIMEOUT_MS			5000
 #define MAX_ADDR_VALUE		0xFF
 
 #define NUMBER_OF_SENSORS	4
@@ -46,10 +46,12 @@ typedef volatile struct max_i2cxl {
 	uint32_t status_pin;
 	uint32_t * status_port;
 	int last_measurement;
+	uint32_t error_code;
 } max_i2cxl_t;
 
 int i2cxl_maxsonar_init(void);
 int32_t i2cxl_maxsonar_change_addr(int, int *);
 uint32_t i2cxl_maxsonar_start(volatile int, volatile int *);
+void i2cxl_maxsonar_start_all(max_i2cxl_t *, uint8_t);
 
 #endif /* MAX_I2CXL_H_ */

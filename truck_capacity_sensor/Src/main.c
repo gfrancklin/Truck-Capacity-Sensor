@@ -4,6 +4,7 @@
   * @brief          : Main program body
   ******************************************************************************
   */
+
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f3xx_hal.h"
@@ -19,16 +20,17 @@
 /* Function Prototypes --------------------------------------------------------*/
 void SystemClock_Config(void);
 void print_menu(void);
+extern void print_measurement(int);
+extern void print_stamp();
+extern void print_debug_message(char *);
+extern void print_measurement_all(max_i2cxl_t *, uint8_t);
 
 #ifdef USE_USB_DEBUG
 uint8_t rx_data_buf[MAX_BUF_SIZE];
 uint32_t data_len = 0;
 #endif
 
-/* GAB: This variable holds the current address of the one sensor currently supported.
- * In the next versions of the software, the typedef max_i2cxl will contain a last
- * measurement value, that will replace this variable. */
-volatile int range_cm = 0;
+extern max_i2cxl_t sensor[NUMBER_OF_SENSORS];
 
 /**
   * @brief  The application entry point.
@@ -36,6 +38,7 @@ volatile int range_cm = 0;
   * @retval None
   */
 int main(void) {
+
 	volatile uint32_t ret_val = 1;
 	uint32_t last_trigger_time = HAL_GetTick();
 
@@ -69,9 +72,11 @@ int main(void) {
 #endif
 
 	/* Initialize FT800 Display */
+#ifndef USE_USB_DEBUG
 	set_display_parameters();
 	wake_up_display();
 	initial_display_screen();
+#endif
 
 	while (1) {
 #ifdef USE_USB_DEBUG
@@ -79,23 +84,26 @@ int main(void) {
 			CDC_Transmit_FS(rx_data_buf, data_len);
 			switch (rx_data_buf[0]) {
 		  		case '1' : {
-		  			while(((ret_val != 0) || ((HAL_GetTick() - last_trigger_time) > TRIGGER_TIME_MS)) &&
+		  			while((/*(ret_val != 0) ||*/ ((HAL_GetTick() - last_trigger_time) > TRIGGER_TIME_MS)) &&
 								  rx_data_buf[data_len-1] != 'q') {
 						 last_trigger_time = HAL_GetTick();
-						 ret_val = i2cxl_maxsonar_start(112, &range_cm);
-						 print_measurement(range_cm);
+						 i2cxl_maxsonar_start_all(&sensor[0], NUMBER_OF_SENSORS);
+						 print_measurement_all(&sensor[0], NUMBER_OF_SENSORS);
 					  }
 					  break;
 				  }
 				  case '2' : {
-					  int old_addr = 112;
-					  int new_addr = 10;
-					  while(ret_val != 0) {
-						  ret_val = i2cxl_maxsonar_change_addr(old_addr, &new_addr);
-					  }
-					  char buffer[255];
-					  sprintf(buffer, "Address Changed to %d\r\n", new_addr);
-					  print_debug_message(buffer);
+//					  int old_addr = 112;
+//					  int new_addr = sensor[3].addr;
+//					  ret_val = 1;
+//					  while(ret_val != 0) {
+//						  ret_val = i2cxl_maxsonar_change_addr(old_addr, &new_addr);
+//						  HAL_Delay(200);
+//					  }
+//
+//					  char buffer[255];
+//					  sprintf(buffer, "Address Changed to %d\r\n", new_addr);
+					  print_debug_message("Option currently Not implemented\r\n");
 					  break;
 				  }
 				  default : {
