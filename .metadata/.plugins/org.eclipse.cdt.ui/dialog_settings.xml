@@ -15,6 +15,7 @@
 		<item value="false" key="caseSensitive"/>
 		<item value="227191" key="searchFlags"/>
 		<list key="previousPatterns">
+			<item value="gauge_t"/>
 			<item value="USE_UART"/>
 			<item value="USE_USB"/>
 		</list>

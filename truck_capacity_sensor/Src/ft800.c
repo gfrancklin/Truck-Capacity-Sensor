@@ -46,7 +46,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "main.h"
-#include "ft800.h"
+#include "FT800.h"
 #include "stm32f3xx_hal.h"
 
 /* USER CODE BEGIN Includes */
@@ -64,6 +64,8 @@
 #define BLUE				0x0000FFUL													// Blue
 #define WHITE				0xFFFFFFUL													// White
 #define BLACK				0x000000UL
+#define MEASURE				0xFFFF00UL
+
 
 /* USER CODE END Includes */
 
@@ -78,8 +80,7 @@ extern volatile int range_cm;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_SPI3_Init(void);
+
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -94,10 +95,7 @@ unsigned int ft800memRead16(unsigned long);
 unsigned long ft800memRead32(unsigned long);
 unsigned int incCMDOffset(unsigned int, unsigned char);
 
-void draw_screen(void);
-void initial_display_screen(void);
-void set_display_parameters(void);
-void wake_up_display(void);
+
 
 //command function prototypes
 void cmd_text(int16_t x, int16_t y, int16_t font, uint16_t options, char * s);
@@ -148,14 +146,87 @@ int16_t sensor_range4;
 int16_t midx;
 int16_t midy;
 
-typedef struct {
-	int16_t xpos;
-	int16_t xsize;
-	int16_t ypos;
-	int16_t ysize;
-	int16_t total_range_cm;
-	int16_t *range_value;
-} gauge_t;
+void drawRect(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int32_t colour, int16_t thickness){
+	ft800memWrite32(RAM_CMD + cmdOffset, (DL_COLOR_RGB | colour));
+	cmdOffset = incCMDOffset(cmdOffset, 4);
+
+	ft800memWrite32(RAM_CMD + cmdOffset, (DL_LINE_WIDTH | thickness*16));
+	cmdOffset = incCMDOffset(cmdOffset, 4);
+
+	ft800memWrite32(RAM_CMD + cmdOffset, (DL_VERTEX2F | x1*16 << 15) | y1*16 );  //draw background of gauge
+	cmdOffset = incCMDOffset(cmdOffset, 4);
+
+	ft800memWrite32(RAM_CMD + cmdOffset, (DL_VERTEX2F | x2*16 << 15) | y2*16);  //draw background of gauge
+	cmdOffset = incCMDOffset(cmdOffset, 4);
+}
+
+void drawTrailer(trailer_t *trailer){
+	ft800memWrite32(RAM_CMD + cmdOffset, (DL_BEGIN | RECTS)); //start rectangles
+	cmdOffset = incCMDOffset(cmdOffset, 4);
+
+	int n = 3;
+	int16_t length;
+
+
+	length = rescale(0,trailer->top_left_max,0,220,*(trailer->top_left_val));
+	drawRect(20,20,midx-n,midy-n,RED,4); //top left border
+	drawRect(20,20,midx-n,midy-n,BLACK,1); //top left background
+	if (*(trailer->top_left_error) == 0){
+		drawRect(20,20,20+length,midy-n,MEASURE,1); //draw measurement
+		drawRect(20+10,20+20,20+10+60,midy-20,20+length > 20+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(20+10+60+10,20+20,20+10+60+10+60,midy-20,20+length > 20+10+60+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(20+10+60+10+60+10,20+20,20+10+60+10+60+10+60,midy-20,20+length > 20+10+60+10+60+10+60 ? GREEN : RED,2); //draw pallet
+	}
+
+	length = rescale(0,trailer->top_right_max,0,220,*(trailer->top_right_val));
+	drawRect(midx+n,20,lcdWidth-20,midy-n,RED,4); //top right border
+	drawRect(midx+n,20,lcdWidth-20,midy-n,BLACK,1); //top right background
+	if (*(trailer->top_right_error) == 0){
+		drawRect(midx+n,20,midx+n+length,midy-n,MEASURE,1);
+		drawRect(midx+n+10,20+20,midx+n+10+60,midy-20,midx+n+length > midx+n+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(midx+n+10+60+10,20+20,midx+n+10+60+10+60,midy-20,midx+n+length > midx+n+10+60+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(midx+n+10+60+10+60+10,20+20,midx+n+10+60+10+60+10+60,midy-20,midx+n+length > midx+n+10+60+10+60+10+60 ? GREEN : RED,2); //draw pallet
+	}
+
+	length = rescale(0,trailer->bottom_left_max,0,220,*(trailer->bottom_left_val));
+	drawRect(20,midy+n,midx-n,lcdHeight-20,RED,4); //bottom left border
+	drawRect(20,midy+n,midx-n,lcdHeight-20,BLACK,1); //bottom left background
+	if (*(trailer->bottom_left_error) == 0){
+		drawRect(20,midy+n,20+length,lcdHeight-20,MEASURE,1);
+		drawRect(20+10,midy+n+20,20+10+60,lcdHeight-20-20,20+length > 20+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(20+10+60+10,midy+n+20,20+10+60+10+60,lcdHeight-20-20,20+length > 20+10+60+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(20+10+60+10+60+10,midy+n+20,20+10+60+10+60+10+60,lcdHeight-20-20,20+length > 20+10+60+10+60+10+60 ? GREEN : RED,2); //draw pallet
+	}
+
+	length = rescale(0,trailer->bottom_right_max,0,220,*(trailer->bottom_right_val));
+	drawRect(midx+n,midy+n,lcdWidth-20,lcdHeight-20,RED,4); //bottom right border
+	drawRect(midx+n,midy+n,lcdWidth-20,lcdHeight-20,BLACK,1); //bottom right background
+	if (*(trailer->bottom_right_error) == 0){
+		drawRect(midx+n,midy+n,midx+n+length,lcdHeight-20,MEASURE,1);
+		drawRect(midx+n+10,midy+n+20,midx+n+10+60,lcdHeight-20-20,midx+n+length > midx+n+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(midx+n+10+60+10,midy+n+20,midx+n+10+60+10+60,lcdHeight-20-20,midx+n+length > midx+n+10+60+10+60 ? GREEN : RED,2); //draw pallet
+		drawRect(midx+n+10+60+10+60+10,midy+n+20,midx+n+10+60+10+60+10+60,lcdHeight-20-20,midx+n+length > midx+n+10+60+10+60+10+60 ? GREEN : RED,2); //draw pallet
+	}
+
+	ft800memWrite32(RAM_CMD + cmdOffset, (DL_END));				// End RECT
+	cmdOffset = incCMDOffset(cmdOffset, 4);
+
+	ft800memWrite32(RAM_CMD + cmdOffset, (DL_COLOR_RGB | BLUE));
+	cmdOffset = incCMDOffset(cmdOffset, 4);
+	char text[4];
+	sprintf(text,"%03d",*(trailer->top_left_val));
+	cmd_text(25, midy-18, 26, 0 , text);
+
+	sprintf(text,"%03d",*(trailer->bottom_left_val));
+	cmd_text(25, lcdHeight-20-16, 26, 0 , text);
+
+	sprintf(text,"%03d",*(trailer->top_right_val));
+	cmd_text(midx+5, midy-18, 26, 0 , text);
+
+	sprintf(text,"%03d",*(trailer->bottom_right_val));
+	cmd_text(midx+5, lcdHeight-20-16, 26, 0 , text);
+}
+
 
 void drawGauge(gauge_t * gauge){
 
@@ -338,11 +409,13 @@ void drawGauge(gauge_t * gauge){
  *****************************************************************************/
 void ft800cmdWrite(unsigned char ftCommand)
 {
+	//__HAL_SPI_CLEAR_CRCERRFLAG(&hspi3);
+	HAL_StatusTypeDef ret_val;
 	unsigned char cZero = 0x00;														// Filler value for command
 	HAL_GPIO_WritePin(GPIOA, FT800_CS_N, GPIO_PIN_RESET);	// Set chip select low
-	HAL_SPI_Transmit(&hspi3, &ftCommand, 1, 0);						// Send command
-	HAL_SPI_Transmit(&hspi3, &cZero, 1, 0);								// Send first filler byte
-	HAL_SPI_Transmit(&hspi3, &cZero, 1, 0);								// Send second filler byte
+	ret_val = HAL_SPI_Transmit(&hspi3, &ftCommand, 1, 0);						// Send command
+	ret_val = HAL_SPI_Transmit(&hspi3, &cZero, 1, 0);								// Send first filler byte
+	ret_val = HAL_SPI_Transmit(&hspi3, &cZero, 1, 0);								// Send second filler byte
 	HAL_GPIO_WritePin(GPIOA, FT800_CS_N, GPIO_PIN_SET);		// Set chip select high
 }
 
@@ -599,7 +672,7 @@ void cmd_text(int16_t x, int16_t y, int16_t font, uint16_t options, char * s){
 
 }
 
-void draw_screen(void){
+void draw_screen(trailer_t * trailer){
 	// Wait for graphics processor to complete executing the current command list
 	// This happens when REG_CMD_READ matches REG_CMD_WRITE, indicating that all commands
 	// have been executed.  The next commands get executed when REG_CMD_WRITE is updated again...
@@ -628,16 +701,17 @@ void draw_screen(void){
 																											// Attributes are the color, stencil and tag buffers
 	cmdOffset = incCMDOffset(cmdOffset, 4);								// Update the command pointer
 
-	gauge_t test1 = {midx-100,25,midy+80,160,765, &range_cm};
-//	gauge_t test2 = {midx-50,25,midy+80,160,765,&sensor_range2};
-//	gauge_t test3 = {midx,25,midy+80,160,765,&sensor_range3};
-//	gauge_t test4 = {midx+50,25,midy+80,160,765,&sensor_range4};
+//	gauge_t test1 = {midx-100,25,midy+80,160,765, &range_cm};
+////	gauge_t test2 = {midx-50,25,midy+80,160,765,&sensor_range2};
+////	gauge_t test3 = {midx,25,midy+80,160,765,&sensor_range3};
+////	gauge_t test4 = {midx+50,25,midy+80,160,765,&sensor_range4};
+//
+//	drawGauge(&test1);
+////	drawGauge(&test2);
+////	drawGauge(&test3);
+////	drawGauge(&test4);
 
-	drawGauge(&test1);
-//	drawGauge(&test2);
-//	drawGauge(&test3);
-//	drawGauge(&test4);
-
+	drawTrailer(trailer);
 	ft800memWrite32(RAM_CMD + cmdOffset, (DL_DISPLAY));		// Instruct the graphics processor to show the list
 	cmdOffset = incCMDOffset(cmdOffset, 4);								// Update the command pointer
 
@@ -647,14 +721,14 @@ void draw_screen(void){
 
 	ft800memWrite16(REG_CMD_WRITE, (cmdOffset));					// Update the ring buffer pointer so the graphics processor starts executing
 
-	sensor_range1 += 22;
-	if (sensor_range1 > 765) sensor_range1 = 0;
-	sensor_range2 += 33;
-	if (sensor_range2 > 765) sensor_range2 = 0;
-	sensor_range3 += 44;
-	if (sensor_range3 > 765) sensor_range3 = 0;
-	sensor_range4 += 55;
-	if (sensor_range4 > 765) sensor_range4 = 0;
+//	sensor_range1 += 22;
+//	if (sensor_range1 > 765) sensor_range1 = 0;
+//	sensor_range2 += 33;
+//	if (sensor_range2 > 765) sensor_range2 = 0;
+//	sensor_range3 += 44;
+//	if (sensor_range3 > 765) sensor_range3 = 0;
+//	sensor_range4 += 55;
+//	if (sensor_range4 > 765) sensor_range4 = 0;
 
 }
 
@@ -705,8 +779,9 @@ void set_display_parameters(void){
 }
 
 void wake_up_display(void){
+	unsigned char rr;
 
-
+//do {
 	HAL_GPIO_WritePin(GPIOC, FT800_PD_N, GPIO_PIN_SET); 	// Initial state of PD_N - high
 	HAL_GPIO_WritePin(GPIOA, FT800_CS_N, GPIO_PIN_SET);		// Initial state of SPI CS - high
 	HAL_Delay(20);																				// Wait 20ms
@@ -726,8 +801,7 @@ void wake_up_display(void){
 	///////////////////////////////
 	//Getting stuck in the while loop here
 	//////////////////////////////////
-	unsigned char rr;
-	while ((rr = ft800memRead8(REG_ID)) != 0x7C)											// Read ID register - is it 0x7C?
+/*}	*/while ((rr = ft800memRead8(REG_ID)) != 0x7C)											// Read ID register - is it 0x7C?
 	{
 	  //while(1);	// If we don't get 0x7C, the ineface isn't working - halt with infinite loop
 	}

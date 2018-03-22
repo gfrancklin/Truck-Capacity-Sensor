@@ -58,8 +58,14 @@
 #define USE_USB_INTERRUPT_DEFAULT   1
 
 /* comment out this definition if there's no need to use the print messages */
-#define USE_USB_DEBUG
+//#define USE_USB_DEBUG
 
+enum sensor_number {
+	bottom_left,
+	bottom_right,
+	top_right,
+	top_left
+};
 
 typedef enum {
 #ifdef USE_UART
@@ -144,7 +150,7 @@ typedef enum {
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
-#define TRIGGER_TIME_MS 100
+#define TRIGGER_TIME_MS 75
 #define MAX_BUF_SIZE	256
 
 /* USER CODE END Private defines */

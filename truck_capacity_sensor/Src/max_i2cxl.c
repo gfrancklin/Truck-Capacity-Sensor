@@ -184,7 +184,7 @@ static uint32_t i2cxl_maxsonar_read(volatile int addr, volatile int * range_cm) 
 	if(addr > MAX_ADDR_VALUE) {	//the address can't be higher than 255
 		ret_val = 1;
 	} else {
-		HAL_Delay(100);
+		HAL_Delay(TRIGGER_TIME_MS);
 		addr <<= 1;
 		addr = addr | SET_BIT_0;	//set bit 0 to start reading
 

@@ -316,5 +316,37 @@
 #define INVALID_TOUCH_XY      0x8000
 #define ABS(x)                ((x) > (0) ? (x) : (-x))
 
+typedef struct {
+	int16_t *top_left_val;
+	int16_t *bottom_left_val;
+	int16_t *top_right_val;
+	int16_t *bottom_right_val;
+	int16_t top_left_max;
+	int16_t bottom_left_max;
+	int16_t top_right_max;
+	int16_t bottom_right_max;
+	int *top_left_error;
+	int *bottom_left_error;
+	int *top_right_error;
+	int *bottom_right_error;
+} trailer_t;
+
+typedef struct {
+	int16_t xpos;
+	int16_t xsize;
+	int16_t ypos;
+	int16_t ysize;
+	int16_t total_range_cm;
+	int16_t *range_value;
+} gauge_t;
+
+void draw_screen(trailer_t *);
+void initial_display_screen(void);
+void set_display_parameters(void);
+void wake_up_display(void);
+void drawRect(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int32_t colour, int16_t thickness);
+void drawTrailer(trailer_t *trailer);
+void drawGauge(gauge_t * gauge);
+
 #endif  //FT800_h
 /** EOF FT800.h ********************************************************/
