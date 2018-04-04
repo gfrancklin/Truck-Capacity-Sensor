@@ -32,6 +32,10 @@ void MX_SPI3_Init(void) {
 		_Error_Handler(__FILE__, __LINE__);
 	}
 
+
+}
+
+void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle) {
 	GPIO_InitTypeDef GPIO_InitStruct;
 	__HAL_RCC_SPI3_CLK_ENABLE();
 
@@ -41,9 +45,6 @@ void MX_SPI3_Init(void) {
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-}
-
-void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle) {
 }
 
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle) {

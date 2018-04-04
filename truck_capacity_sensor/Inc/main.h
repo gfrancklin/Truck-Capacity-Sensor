@@ -152,6 +152,8 @@ typedef enum {
 /* USER CODE BEGIN Private defines */
 #define TRIGGER_TIME_MS 75
 #define MAX_BUF_SIZE	256
+//#define USE_USB_DEBUG	1
+//#define DOOR_SENSOR_DEMO
 
 /* USER CODE END Private defines */
 
